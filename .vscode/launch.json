@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "gnt2png",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/gnt2png.py",
+            "args": ["/Users/peiyandong/Documents/code/ai/train-data/hwdb/single/Gnt1.0TrainPart1.zip", "/Users/peiyandong/Documents/code/ai/train-data/hwdb/single/1.0","28"]
+        }
+    ]
+}
