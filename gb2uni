@@ -2,4 +2,4 @@ def gb2312_to_decimal(gb2312_char):
     return int(gb2312_char.encode('gb2312').hex(), 16)
 
 if __name__ == "__main__":
-    print(gb2312_to_decimal('.'))  # 输出: 45270
+    print(gb2312_to_decimal('√'))  # 输出: 45270

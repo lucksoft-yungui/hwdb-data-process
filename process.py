@@ -18,21 +18,29 @@ def get_char_images(root_path):
         char_images[char] = image_paths
     return char_images
 
-def random_resize(image, max_dim):
-    resize_factor = np.random.uniform(0.5, 1.0)
-    new_dim = int(resize_factor * max_dim)
+def random_resize(img, original_size):
+    scale = random.uniform(0.7, 1.0)  # random scale
+    new_size = int(original_size * scale)
+    img = cv2.resize(img, (new_size, new_size))
 
-    # Note, we pass a tuple instead of an integer to cv2.resize
-    resized_image = cv2.resize(image, (new_dim, new_dim))
+    # create a white blank image
+    new_image = np.ones((original_size, original_size, 3), np.uint8) * 255  # white blank image
 
-    # Create a new blank image and place the scaled and moved number into it
-    new_image = np.zeros((max_dim, max_dim, 3), np.uint8)
+    # calculate vertical shift range
+    dy_min = 2
+    dy_max = original_size - new_size - 2
 
-    # Randomly move the number within the acceptable vertical range
-    vertical_position = np.random.randint(0, max_dim - new_dim)
-    new_image[vertical_position:vertical_position+new_dim, :new_dim] = resized_image
-    
+    if dy_min >= dy_max:
+        # If the range is invalid, set dy to 2 (or to the maximum valid value)
+        dy = min(dy_min, original_size - new_size)
+    else:
+        # random vertical shift
+        dy = random.randint(dy_min, dy_max)
+
+    new_image[dy:dy + new_size, :new_size] = img
+
     return new_image
+
 
 def generate_dataset(words_file, char_images, output_dir, num_samples, label_file, max_length, min_spacing, max_spacing):
     global current_index
@@ -59,7 +67,7 @@ def generate_dataset(words_file, char_images, output_dir, num_samples, label_fil
                 image_path = random.choice(char_images[char_code])
                 image = cv2.imread(image_path)
                 image = cv2.resize(image, (28, 28)) # Resize if needed
-                image = cv2.bitwise_not(image) # Invert colors
+                # image = cv2.bitwise_not(image) # Invert colors
                 
                 # 50% probability to scale the image
                 if random.random() < 0.5:
@@ -67,7 +75,8 @@ def generate_dataset(words_file, char_images, output_dir, num_samples, label_fil
 
                 images.append(image)
 
-            blank_image = np.zeros((32, 168, 3), np.uint8)  # black blank image
+            # blank_image = np.zeros((32, 168, 3), np.uint8)  # black blank image
+            blank_image = np.ones((32, 168, 3), np.uint8) * 255  # white blank image
             x = 0
             for img in images:
                 spacing = random.randint(min_spacing, max_spacing)
@@ -78,6 +87,9 @@ def generate_dataset(words_file, char_images, output_dir, num_samples, label_fil
                 x += img.shape[1] + spacing
             
             img_path = os.path.join(output_dir, "imgs", f"{index}.png")
+            
+            _, blank_image = cv2.threshold(blank_image, 200, 255, cv2.THRESH_BINARY)
+
             cv2.imwrite(img_path, blank_image)
             
             f.write(f"{index}.png {word}\n")
